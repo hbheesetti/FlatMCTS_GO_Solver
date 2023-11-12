@@ -327,6 +327,15 @@ class GoBoard(object):
                     self.white_captures += 2
         return True
     
+    def endOfGame(self) -> bool:
+        if self.get_empty_points().size == 0 or GO_COLOR(self.detect_five_in_a_row()) != EMPTY or self.black_captures >= 10 or self.white_captures >= 10:
+            return True
+        return False
+    
+    def legalMoves(self):
+        moves = self.get_empty_points()
+        return moves
+    
     def neighbors_of_color(self, point: GO_POINT, color: GO_COLOR) -> List:
         """ List of neighbors of point of given color """
         nbc: List[GO_POINT] = []

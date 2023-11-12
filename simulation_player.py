@@ -1,5 +1,8 @@
 from board_base import EMPTY, BLACK, WHITE
 import random
+from board_util import GoBoardUtil
+from board import GoBoard
+from typing import List, Tuple
 
 class SimulationPlayer(object):
     def __init__(self, numSimulations):
@@ -22,11 +25,21 @@ class SimulationPlayer(object):
         #print("Best move:", best, "score", score[best])
         assert best in state.legalMoves()
         return best
+    
+    def generateRuleBasedMoves(self, board: GoBoard, color) -> Tuple[str, List[int]]:
+        """
+        return: (MoveType, MoveList)
+        MoveType: {"Win", "BlockWin", "OpenFour", "BlockOpenFour", "Random"}
+        MoveList: an unsorted List[int], each element is a move
+        """
+        self.board = board
+        result = self.board.get_empty_points()
+        return ("Random", result)
 
     def simulate(self, state, move):
         num_wins = 0
         num_draws = 0
-        for _ in range(self.NUM_SIMULATION):
+        for _ in range(self.numSimulations):
             board_copy = state.copy()
             board_copy.play_move(move, state.current_player)
             winner = board_copy.detect_five_in_a_row()
@@ -39,4 +52,4 @@ class SimulationPlayer(object):
                 num_wins += 1
             elif winner == EMPTY:
                 num_draws += 1
-        return num_wins * (self.NUM_SIMULATION + 1) + num_draws
+        return num_wins * (self.numSimulations + 1) + num_draws

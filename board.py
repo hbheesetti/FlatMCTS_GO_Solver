@@ -393,3 +393,117 @@ class GoBoard(object):
             if counter == 5 and prev != EMPTY:
                 return prev
         return EMPTY
+    
+    def detect_n_in_row(self,four_colour):
+        #Checks for a group of n stones in the same direction on the board.
+        b5 = []
+        w5 = []
+        four = []
+        _ = []
+        for r in self.rows:
+            rows = self.has_n_in_list(r,four_colour)
+            w5 += rows[0]
+            b5 += rows[1]
+            four += rows[2]
+        for c in self.cols:
+            cols = self.has_n_in_list(c,four_colour)
+            w5 += cols[0]
+            b5 += cols[1]
+            four += cols[2]
+        for d in self.diags:
+            diags = self.has_n_in_list(d,four_colour)
+            w5 += diags[0]
+            b5 += diags[1]
+            four += rows[2]
+
+        # return only Wins or BlockWins if they exist
+        if(len(w5) > 0 or len(b5) > 0): 
+            return (w5,b5)
+        # else return OpenFours
+        else:
+            return (four,_)
+    
+    def has_n_in_list(self, list, four_colour) -> GO_COLOR:
+        """
+        Checks if there are n stones in a row.
+        Returns BLACK or WHITE if any n in a rows exist in the list.
+        EMPTY otherwise.
+        """
+        prev = self.get_color(list[0])
+        counter = 1
+        gap_spot = 0
+        before_gap_counter = 0
+        b5 = []
+        w5 = []
+        four = []
+        five = False
+        for i in range(1,len(list)):
+            color = self.get_color(list[i])
+            if color == prev:
+                # Matching stone
+                counter += 1
+            elif(gap_spot == 0 and color == EMPTY):
+                # there is a potential gap 
+                gap_spot = i
+                before_gap_counter = counter # store the number of stones before the gap
+            else:
+                # if there is a second gap ignore the first gap, set empty to the second gap, and subtract the number of stones before the first gap from the counter.
+                # this is so that we can keep the stones after the first gap but before the second gap in the count 
+                if(color == EMPTY):
+                    gap_spot = i
+                    counter = counter - before_gap_counter
+                    before_gap_counter = counter
+                # there is a colour change, reset all vars
+                else:
+                    before_gap_counter = 0
+                    counter = 1
+                    gap_spot = 0
+                    prev = color
+            # if at the end of the board or there has been a colour change get the empty spaces
+            if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
+                if(counter == 4):
+                    five = True
+                    w5,b5 = self.five_space(w5,b5,gap_spot,list,i,color)
+                # only get fours if there are no fives and the color is correct
+                elif(not five and counter == 3 and color == four_colour):
+                    four = self.four_space(four,gap_spot,list,i)
+        return [w5,b5,four]
+    
+    def five_space(self,w,b,empty,list,i,color):
+        if(color == BLACK):
+            # if there is an empty space append it is the space that completes the block
+            if(empty > 0):
+                b.append(list[empty])
+                return [w,b]
+            # if there is an empty space before or after the block add them 
+            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                b.append(list[i+1])
+            if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
+                b.append(list[i-4])
+            return [w,b]
+            
+        elif(color == WHITE):
+            if(empty > 0):
+                # if there is an empty space append it is the space that completes the block
+                w.append(list[empty])
+                return [w,b]
+            # if there is an empty space before or after the block add them 
+            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                w.append(list[i+1])
+            if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
+                w.append(list[i-4]) 
+            return [w,b]
+
+        return [w,b]
+    
+    def four_space(self,four,empty,list,i):
+         # if there is an empty space append it is the space that completes the block
+        if(empty > 0):
+            four.append(list[empty])
+            return four
+        # if there are at least 2 empty spaces to a side of the block add the first empty space e.g add ..XXX not O.XXX
+        if(i+2 < len(list) and self.board[list[i+1]] == EMPTY and self.board[list[i-2] == EMPTY]):
+            four.append(list[i+1])
+        if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1] == EMPTY]):
+            four.append(list[i-3])
+        return four

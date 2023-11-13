@@ -426,13 +426,30 @@ class GoBoard(object):
             w5 += diags[0]
             b5 += diags[1]
             four += rows[2]
+        print("four", four)
+        if four_colour == BLACK:
+            wins = b5
+            blocks = w5
+        elif four_colour == WHITE:
+            wins = w5
+            blocks = b5
+        if(len(wins) > 0):
+            return "Win", wins
+        elif len(blocks) > 0:
+            return "BlockWin", blocks
+        elif len(four) > 0:
+            return "OpenFour", four
+        return "none", []
+    
+    def moveFormatting(self, moves):
+        formatted_moves = []
+        for i in moves:
+            coord = point_to_coord(i, self.board.size)
+            move = format_point(coord)
+            formatted_moves.append(move)
+        formatted_moves.sort()
+        return formatted_moves
 
-        # return only Wins or BlockWins if they exist
-        if(len(w5) > 0 or len(b5) > 0): 
-            return (w5,b5)
-        # else return OpenFours
-        else:
-            return (four,_)
     
     def has_n_in_list(self, list, four_colour) -> GO_COLOR:
         """

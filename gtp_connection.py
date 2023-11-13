@@ -46,6 +46,7 @@ class GtpConnection:
         self.go_engine = go_engine
         self.board: GoBoard = board
         self.policy_random = True
+        self.simulatedPlayer = SimulationPlayer(10)
         self.commands: Dict[str, Callable[[List[str]], None]] = {
             "protocol_version": self.protocol_version_cmd,
             "quit": self.quit_cmd,
@@ -365,9 +366,13 @@ class GtpConnection:
         """ 
         Modify this function for Assignment 2.
         """
-        self.simulatedPlayer = SimulationPlayer(10)
-        self.simulatedPlayer.genmove(self.board)
-    
+        gen_color = args[0].lower()
+        color = color_to_int(gen_color)
+        move = self.simulatedPlayer.genmove(self.board, color, self.policy_random)
+        move_coord = point_to_coord(move, self.board.size)
+        move_as_string = format_point(move_coord)
+        self.respond(move_as_string)
+       
     def set_policy_cmd(self, args:List[str]) -> None:
         if args[0] == "random":
             self.policy_random = True
@@ -385,11 +390,12 @@ class GtpConnection:
             move = format_point(coord)
             formatted_moves.append(move)
         formatted_moves.sort()
-        self.respond(formatted_moves)
+        return str(formatted_moves)
 
     def policy_moves_cmd(self, args) -> None:
-        if self.policy_random:
-            self.moveFormatting(self.board.legalMoves())
+        rule, moves = self.simulatedPlayer.ruleBasedMoves(self.board, self.board.current_player, self.policy_random)
+        s = rule + self.moveFormatting(moves)
+        self.respond(s)
 
     def timelimit_cmd(self, args: List[str]) -> None:
         """ Implement this function for Assignment 2 """

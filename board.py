@@ -309,12 +309,14 @@ class GoBoard(object):
         Tries to play a move of color on the point.
         Returns whether or not the point was empty.
         """
+        
         if self.board[point] != EMPTY:
             return False
         self.board[point] = color
         self.current_player = opponent(color)
         self.last2_move = self.last_move
         self.last_move = point
+        self.detect_n_in_row(color)
         O = opponent(color)
         offsets = [1, -1, self.NS, -self.NS, self.NS+1, -(self.NS+1), self.NS-1, -self.NS+1]
         for offset in offsets:
@@ -445,6 +447,8 @@ class GoBoard(object):
         b5 = []
         w5 = []
         four = []
+        cap_4b = []
+        cap_4w = []
         five = False
         for i in range(1,len(list)):
             color = self.get_color(list[i])
@@ -470,13 +474,84 @@ class GoBoard(object):
                     prev = color
             # if at the end of the board or there has been a colour change get the empty spaces
             if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
+                #print("at end of board?", i, counter)
                 if(counter == 4):
                     five = True
                     w5,b5 = self.five_space(w5,b5,gap_spot,list,i,color)
                 # only get fours if there are no fives and the color is correct
                 elif(not five and counter == 3 and color == four_colour):
                     four = self.four_space(four,gap_spot,list,i)
-        return [w5,b5,four]
+                elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
+                    # print(counter, color)
+                    # print(self.get_color(list[i-3])*self.get_color(list[i-1]))
+                    # print(self.get_color(list[i-2])*color)
+                    print("i-3", self.get_color(list[i-3]))
+                    print("i-2", self.get_color(list[i-2]))
+                    print("i-1", self.get_color(list[i-1]))
+                    print("i", self.get_color(list[i]))
+                    #print("i+1", self.get_color(list[i+1]))
+                    # print(list)
+                    # print(2*0)
+                    # There is a possible capture
+                    if self.get_color(list[i-3])*self.get_color(list[i-2]) == 2 and color == 0:
+                        '''
+                        Check if the pattern is opp,opp,opp,empty
+                        '''
+                        print("in1")
+                        # The current stone is an empty spot and two stones back is an apponent of the two in a row
+                        if self.get_color(list[i-3]) == 2:
+                            # The lone opponent stone is whtie
+                            cap_4b.append(list[i])
+                        else:
+                            # The lone opponent stone is black
+                            cap_4w.append(list[i])
+                    elif self.get_color(list[i-3]) == 0 and self.get_color(list[i-1])*color == 2:
+                            '''
+                            Check if the pattern is empty,opp,opp,opp
+                            '''
+                            print("in2")
+                            # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                            if color == 2:
+                                cap_4b.append(list[i-3])
+                            else:
+                                cap_4w.append(list[i-3])
+# Having issues here going out of index range. Not handling the diagonals properly?
+                    elif self.get_color(list[i-2]) == 0 and self.get_color(list[i+1])*color == 2:
+                        print("in3")
+                        # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                        if color == 2:
+                            cap_4b.append(list[i-2])
+                        else:
+                            cap_4w.append(list[i-2])
+                        
+                    elif self.get_color(list[i+1]) == 0 and self.get_color(list[i-2])*color == 2:
+                        print("in4")
+                        # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                        if color == 2:
+                            cap_4b.append(list[i+1])
+                        else:
+                            cap_4w.append(list[i+1])
+        
+        if self.black_captures == 8:
+            cap_4w = cap_4b+cap_4w
+        if self.white_captures == 8:
+            cap_4b = cap_4w+cap_4b
+        #print(cap_4b, cap_4w)
+        if  cap_4w != []:
+            print("white")
+            for col in cap_4w:
+                print(format_point(point_to_coord(col, 5)))
+        if cap_4b != []:
+            print("black")
+            for col in cap_4b:
+                print(format_point(point_to_coord(col, 5)))
+
+            
+
+        if four_colour == WHITE:
+            return [w5,b5,four, cap_4w]
+        else:
+            return [w5,b5,four, cap_4b]
     
     def five_space(self,w,b,empty,list,i,color):
         if(color == BLACK):
@@ -516,3 +591,40 @@ class GoBoard(object):
         if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1] == EMPTY]):
             four.append(list[i-3])
         return four
+
+    def find_capture(self):
+        pass
+
+    def random(self):
+        pass
+
+
+    '''
+    REMOVE BEFORE SUBMIT
+    '''
+
+
+def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
+    """
+    Transform point given as board array index 
+    to (row, col) coordinate representation.
+    Special case: PASS is transformed to (PASS,PASS)
+    """
+    if point == PASS:
+        return (PASS, PASS)
+    else:
+        NS = boardsize + 1
+        return divmod(point, NS)
+    
+def format_point(move: Tuple[int, int]) -> str:
+    """
+    Return move coordinates as a string such as 'A1', or 'PASS'.
+    """
+    assert MAXSIZE <= 25
+    column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
+    if move[0] == PASS:
+        return "PASS"
+    row, col = move
+    if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
+        raise ValueError
+    return column_letters[col - 1] + str(row)

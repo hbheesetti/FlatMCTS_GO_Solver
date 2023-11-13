@@ -515,7 +515,7 @@ class GoBoard(object):
                                 cap_4b.append(list[i-3])
                             else:
                                 cap_4w.append(list[i-3])
-# Having issues here going out of index range. Not handling the diagonals properly?
+                    
                     elif self.get_color(list[i-2]) == 0 and self.get_color(list[i+1])*color == 2:
                         print("in3")
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
@@ -532,26 +532,12 @@ class GoBoard(object):
                         else:
                             cap_4w.append(list[i+1])
         
-        if self.black_captures == 8:
-            cap_4w = cap_4b+cap_4w
-        if self.white_captures == 8:
-            cap_4b = cap_4w+cap_4b
-        #print(cap_4b, cap_4w)
-        if  cap_4w != []:
-            print("white")
-            for col in cap_4w:
-                print(format_point(point_to_coord(col, 5)))
-        if cap_4b != []:
-            print("black")
-            for col in cap_4b:
-                print(format_point(point_to_coord(col, 5)))
+        # Code for identifying when there is a potential capture win for a player
+        # if self.black_captures == 8:
+        #     cap_4w = cap_4b+cap_4w
+        # if self.white_captures == 8:
+        #     cap_4b = cap_4w+cap_4b
 
-            
-
-        if four_colour == WHITE:
-            return [w5,b5,four, cap_4w]
-        else:
-            return [w5,b5,four, cap_4b]
     
     def five_space(self,w,b,empty,list,i,color):
         if(color == BLACK):

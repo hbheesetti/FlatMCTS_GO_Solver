@@ -424,13 +424,30 @@ class GoBoard(object):
             w5 += diags[0]
             b5 += diags[1]
             four += rows[2]
+        print("four", four)
+        if four_colour == BLACK:
+            wins = b5
+            blocks = w5
+        elif four_colour == WHITE:
+            wins = w5
+            blocks = b5
+        if(len(wins) > 0):
+            return "Win", wins
+        elif len(blocks) > 0:
+            return "BlockWin", blocks
+        elif len(four) > 0:
+            return "OpenFour", four
+        return "none", []
+    
+    def moveFormatting(self, moves):
+        formatted_moves = []
+        for i in moves:
+            coord = point_to_coord(i, self.board.size)
+            move = format_point(coord)
+            formatted_moves.append(move)
+        formatted_moves.sort()
+        return formatted_moves
 
-        # return only Wins or BlockWins if they exist
-        if(len(w5) > 0 or len(b5) > 0): 
-            return (w5,b5)
-        # else return OpenFours
-        else:
-            return (four,_)
     
     def has_n_in_list(self, list, four_colour) -> GO_COLOR:
         """
@@ -516,3 +533,30 @@ class GoBoard(object):
         if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1] == EMPTY]):
             four.append(list[i-3])
         return four
+    
+
+def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
+    """
+    Transform point given as board array index 
+    to (row, col) coordinate representation.
+    Special case: PASS is transformed to (PASS,PASS)
+    """
+    if point == PASS:
+        return (PASS, PASS)
+    else:
+        NS = boardsize + 1
+        return divmod(point, NS)
+
+
+def format_point(move: Tuple[int, int]) -> str:
+    """
+    Return move coordinates as a string such as 'A1', or 'PASS'.
+    """
+    assert MAXSIZE <= 25
+    column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
+    if move[0] == PASS:
+        return "PASS"
+    row, col = move
+    if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
+        raise ValueError
+        return column_letters[col - 1] + str(row)

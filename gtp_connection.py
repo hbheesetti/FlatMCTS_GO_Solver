@@ -368,7 +368,7 @@ class GtpConnection:
         """
         gen_color = args[0].lower()
         color = color_to_int(gen_color)
-        move = self.simulatedPlayer.genmove(self.board, color)
+        move = self.simulatedPlayer.genmove(self.board, color, self.policy_random)
         move_coord = point_to_coord(move, self.board.size)
         move_as_string = format_point(move_coord)
         self.respond(move_as_string)
@@ -390,11 +390,12 @@ class GtpConnection:
             move = format_point(coord)
             formatted_moves.append(move)
         formatted_moves.sort()
-        self.respond(formatted_moves)
+        return str(formatted_moves)
 
     def policy_moves_cmd(self, args) -> None:
-        if self.policy_random:
-            self.moveFormatting(self.board.legalMoves())
+        rule, moves = self.simulatedPlayer.ruleBasedMoves(self.board, self.board.current_player, self.policy_random)
+        s = rule + self.moveFormatting(moves)
+        self.respond(s)
 
     def timelimit_cmd(self, args: List[str]) -> None:
         """ Implement this function for Assignment 2 """

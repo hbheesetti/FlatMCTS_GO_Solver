@@ -410,35 +410,53 @@ class GoBoard(object):
         b5 = []
         w5 = []
         four = []
+        cap_for_w = []
+        cap_for_b = []
         _ = []
-        for r in self.rows:
+        lines = self.rows + self.cols + self.diags
+        for r in lines:
             rows = self.has_n_in_list(r,four_colour)
             w5 += rows[0]
             b5 += rows[1]
             four += rows[2]
-        for c in self.cols:
-            cols = self.has_n_in_list(c,four_colour)
-            w5 += cols[0]
-            b5 += cols[1]
-            four += cols[2]
-        for d in self.diags:
-            diags = self.has_n_in_list(d,four_colour)
-            w5 += diags[0]
-            b5 += diags[1]
-            four += rows[2]
-        print("four", four)
+            cap_for_w += rows[3]
+            cap_for_b += rows[4]
+        #print("r", cap_for_w, cap_for_b)
+        # for c in self.cols:
+        #     cols = self.has_n_in_list(c,four_colour)
+        #     w5 += cols[0]
+        #     b5 += cols[1]
+        #     four += cols[2]
+        #     cap_for_w += rows[3]
+        #     cap_for_b += rows[4]
+        # print("c", cap_for_w, cap_for_b)
+        # for d in self.diags:
+        #     diags = self.has_n_in_list(d,four_colour)
+        #     w5 += diags[0]
+        #     b5 += diags[1]
+        #     four += rows[2]
+        #     cap_for_w += rows[3]
+        #     cap_for_b += rows[4]
+        # print("d", cap_for_w, cap_for_b)
+
+        #print("four", four)
         if four_colour == BLACK:
             wins = b5
             blocks = w5
+            captures = cap_for_b
         elif four_colour == WHITE:
             wins = w5
             blocks = b5
+            captures = cap_for_w
+        
         if(len(wins) > 0):
             return "Win", wins
         elif len(blocks) > 0:
             return "BlockWin", blocks
         elif len(four) > 0:
             return "OpenFour", four
+        elif len(captures) > 0:
+            return "Capture", captures
         return "none", []
     
     def moveFormatting(self, moves):
@@ -499,63 +517,61 @@ class GoBoard(object):
                 elif(not five and counter == 3 and color == four_colour):
                     four = self.four_space(four,gap_spot,list,i)
                 elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
-                    # print(counter, color)
-                    # print(self.get_color(list[i-3])*self.get_color(list[i-1]))
-                    # print(self.get_color(list[i-2])*color)
-                    print("i-3", self.get_color(list[i-3]))
-                    print("i-2", self.get_color(list[i-2]))
-                    print("i-1", self.get_color(list[i-1]))
-                    print("i", self.get_color(list[i]))
-                    #print("i+1", self.get_color(list[i+1]))
-                    # print(list)
-                    # print(2*0)
                     # There is a possible capture
                     if self.get_color(list[i-3])*self.get_color(list[i-2]) == 2 and color == 0:
                         '''
                         Check if the pattern is opp,opp,opp,empty
                         '''
-                        print("in1")
                         # The current stone is an empty spot and two stones back is an apponent of the two in a row
                         if self.get_color(list[i-3]) == 2:
                             # The lone opponent stone is whtie
-                            cap_4b.append(list[i])
+                            cap_4b += [list[i]]
                         else:
                             # The lone opponent stone is black
-                            cap_4w.append(list[i])
+                            cap_4w += [list[i]]
                     elif self.get_color(list[i-3]) == 0 and self.get_color(list[i-1])*color == 2:
                             '''
                             Check if the pattern is empty,opp,opp,opp
                             '''
-                            print("in2")
                             # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                             if color == 2:
-                                cap_4b.append(list[i-3])
+                                cap_4b += [list[i-3]]
                             else:
-                                cap_4w.append(list[i-3])
+                                cap_4w += [list[i-3]]
                     
                     elif self.get_color(list[i-2]) == 0 and self.get_color(list[i+1])*color == 2:
-                        print("in3")
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if color == 2:
-                            cap_4b.append(list[i-2])
+                            cap_4b += [list[i-2]]
                         else:
-                            cap_4w.append(list[i-2])
+                            cap_4w += [list[i-2]]
                         
                     elif self.get_color(list[i+1]) == 0 and self.get_color(list[i-2])*color == 2:
-                        print("in4")
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if self.get_color(list[i-1]) == 2:
-                            cap_4b.append(list[i+1])
+                            cap_4b += [list[i+1]]
                         else:
-                            cap_4w.append(list[i+1])
+                            cap_4w += [list[i+1]]
         
+        # if  cap_4w != []:
+        #     print("white")
+        #     for col in cap_4w:
+        #         print(format_point(point_to_coord(col, 5)))
+        # if cap_4b != []:
+        #     print("black")
+        #     for col in cap_4b:
+        #         print(format_point(point_to_coord(col, 5)))
+
+        # print("inside n_row", cap_4b, cap_4w)
         # Code for identifying when there is a potential capture win for a player
         # if self.black_captures == 8:
         #     cap_4w = cap_4b+cap_4w
         # if self.white_captures == 8:
         #     cap_4b = cap_4w+cap_4b
-
+        
+        return [w5,b5,four,cap_4w, cap_4b]
     
+
     def five_space(self,w,b,empty,list,i,color):
         if(color == BLACK):
             # if there is an empty space append it is the space that completes the block
@@ -594,13 +610,6 @@ class GoBoard(object):
         if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1] == EMPTY]):
             four.append(list[i-3])
         return four
-
-    def find_capture(self):
-        pass
-
-    def random(self):
-        pass
-
 
     '''
     REMOVE BEFORE SUBMIT

@@ -18,7 +18,7 @@ class SimulationPlayer(object):
         score = [0] * numMoves
         for i in range(numMoves):
             move = moves[i]
-            print(move)
+           # print(move)
             score[i] = self.simulate(state, move, rand)
         bestIndex = score.index(max(score))
         best = moves[bestIndex]
@@ -47,7 +47,7 @@ class SimulationPlayer(object):
             winner = board_copy.detect_five_in_a_row()
             while winner == EMPTY and len(board_copy.get_empty_points()) != 0:
                 _,moves = self.ruleBasedMoves(board_copy, board_copy.current_player, rand)
-                print(moves)
+                #print(moves)
                 random_move = random.choice(moves)
                 board_copy.play_move(random_move, board_copy.current_player)
                 winner = board_copy.detect_five_in_a_row()

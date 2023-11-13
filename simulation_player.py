@@ -11,9 +11,9 @@ class SimulationPlayer(object):
     def name(self):
         return "Simulation Player ({0} sim.)".format(self.numSimulations)
 
-    def genmove(self, state):
+    def genmove(self, state, color):
         assert not state.endOfGame()
-        moves = state.legalMoves()
+        moves = self.ruleBasedMoves(state, color)
         numMoves = len(moves)
         score = [0] * numMoves
         for i in range(numMoves):
@@ -26,12 +26,14 @@ class SimulationPlayer(object):
         assert best in state.legalMoves()
         return best
     
-    def generateRuleBasedMoves(self, board: GoBoard, color) -> Tuple[str, List[int]]:
+    def ruleBasedMoves(self, board: GoBoard, color) -> Tuple[str, List[int]]:
         """
         return: (MoveType, MoveList)
         MoveType: {"Win", "BlockWin", "OpenFour", "BlockOpenFour", "Random"}
         MoveList: an unsorted List[int], each element is a move
         """
+        # we need to call the other rules above
+        # this handles random
         self.board = board
         result = self.board.get_empty_points()
         return ("Random", result)

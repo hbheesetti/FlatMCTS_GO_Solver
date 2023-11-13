@@ -46,7 +46,7 @@ class SimulationPlayer(object):
             board_copy.play_move(move, state.current_player)
             winner = board_copy.detect_five_in_a_row()
             while winner == EMPTY and len(board_copy.get_empty_points()) != 0:
-                moves = self.generateRuleBasedMoves(board_copy, board_copy.current_player)[1]
+                moves = self.ruleBasedMoves(board_copy, board_copy.current_player)[1]
                 random_move = random.choice(moves)
                 board_copy.play_move(random_move, board_copy.current_player)
                 winner = board_copy.detect_five_in_a_row()

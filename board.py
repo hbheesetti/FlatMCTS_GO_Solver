@@ -527,7 +527,7 @@ class GoBoard(object):
                     elif self.get_color(list[i+1]) == 0 and self.get_color(list[i-2])*color == 2:
                         print("in4")
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
-                        if color == 2:
+                        if self.get_color(list[i-1]) == 2:
                             cap_4b.append(list[i+1])
                         else:
                             cap_4w.append(list[i+1])

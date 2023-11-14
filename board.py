@@ -585,7 +585,7 @@ class GoBoard(object):
             # if there is an empty space append it is the space that completes the block
             if(empty > 0):
                 b.append(list[empty])
-                return [w,b]
+                return [w,b,block]
             # if there is an empty space before or after the block add them 
             if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 b.append(list[i+1])
@@ -602,7 +602,7 @@ class GoBoard(object):
             if(empty > 0):
                 # if there is an empty space append it is the space that completes the block
                 w.append(list[empty])
-                return [w,b]
+                return [w,b,block]
             # if there is an empty space before or after the block add them 
             if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 w.append(list[i+1])

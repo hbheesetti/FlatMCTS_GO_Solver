@@ -405,7 +405,7 @@ class GoBoard(object):
                 return prev
         return EMPTY
     
-    def detect_n_in_row(self,four_colour):
+    def detect_n_in_row(self,current_color):
         #Checks for a group of n stones in the same direction on the board.
         b5 = []
         w5 = []
@@ -413,14 +413,16 @@ class GoBoard(object):
         cap_for_w = []
         cap_for_b = []
         _ = []
+        blocks_of_opponent_fives = []
         lines = self.rows + self.cols + self.diags
         for r in lines:
-            rows = self.has_n_in_list(r,four_colour)
+            rows = self.has_n_in_list(r,current_color)
             w5 += rows[0]
             b5 += rows[1]
             four += rows[2]
             cap_for_w += rows[3]
             cap_for_b += rows[4]
+            blocks_of_opponent_fives += rows[5]
         #print("r", cap_for_w, cap_for_b)
         # for c in self.cols:
         #     cols = self.has_n_in_list(c,four_colour)
@@ -440,13 +442,15 @@ class GoBoard(object):
         # print("d", cap_for_w, cap_for_b)
 
         #print("four", four)
-        if four_colour == BLACK:
+        if current_color == BLACK:
             wins = b5
             blocks = w5
+            #blocks += self.intersect_captures(cap_for_b,blocks_of_opponent_fives)
             captures = cap_for_b
-        elif four_colour == WHITE:
+        elif current_color == WHITE:
             wins = w5
             blocks = b5
+            #blocks += self.intersect_captures(cap_for_w,blocks_of_opponent_fives)
             captures = cap_for_w
         
         if(len(wins) > 0):
@@ -469,7 +473,7 @@ class GoBoard(object):
         return formatted_moves
 
     
-    def has_n_in_list(self, list, four_colour) -> GO_COLOR:
+    def has_n_in_list(self, list, current_color) -> GO_COLOR:
         """
         Checks if there are n stones in a row.
         Returns BLACK or WHITE if any n in a rows exist in the list.
@@ -484,7 +488,7 @@ class GoBoard(object):
         four = []
         cap_4b = []
         cap_4w = []
-        cap_block = []
+        blocks_of_opponent_fives = []
         for i in range(1,len(list)):
             color = self.get_color(list[i])
             if color == prev:
@@ -511,17 +515,12 @@ class GoBoard(object):
             if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
                 #print("at end of board?", i, counter)
                 if(counter == 4):
-                    w5,b5 = self.five_space(w5,b5,gap_spot,list,i,color)
-                    cap_block = self.capture_block(gap_spot,four_colour,list,i)
+                    w5,b5,block = self.five_space(w5,b5,gap_spot,list,i,color,blocks_of_opponent_fives,current_color)
+                    #cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
-                elif(counter == 3 and color == four_colour):
+                elif(counter == 3 and color == current_color):
                     four = self.four_space(four,gap_spot,list,i)
                 elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
-                    # print("i-3", self.get_color(list[i-3]))
-                    # print("i-2", self.get_color(list[i-2]))
-                    # print("i-1", self.get_color(list[i-1]))
-                    # print("i", self.get_color(list[i]))
-                    # print("i+1", self.get_color(list[i+1]))
                     # There is a possible capture
                     if self.get_color(list[i-3])*self.get_color(list[i-2]) == 2 and color == 0 and i >= 3:
                         
@@ -578,10 +577,10 @@ class GoBoard(object):
         # if self.white_captures == 8:
         #     cap_4b = cap_4w+cap_4b
         
-        return [w5,b5,four,cap_4w, cap_4b]
+        return [w5,b5,four,cap_4w, cap_4b,blocks_of_opponent_fives]
     
 
-    def five_space(self,w,b,empty,list,i,color):
+    def five_space(self,w,b,empty,list,i,color,block,current_color):
         if(color == BLACK):
             # if there is an empty space append it is the space that completes the block
             if(empty > 0):
@@ -592,7 +591,12 @@ class GoBoard(object):
                 b.append(list[i+1])
             if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
                 b.append(list[i-4])
-            return [w,b]
+            if(len(b) > 0 and current_color != BLACK):
+                block.append([list[i], list[i-1], list[i-2], list[i-3]])
+                if(empty > 0):
+                    block.remove(list[empty])
+                    list.append(list[i-4])
+            return [w,b,block]
             
         elif(color == WHITE):
             if(empty > 0):
@@ -604,7 +608,12 @@ class GoBoard(object):
                 w.append(list[i+1])
             if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
                 w.append(list[i-4]) 
-            return [w,b]
+            if(len(w) > 0 and current_color != WHITE):
+                if(empty > 0):
+                    block.remove(list[empty])
+                    list.append(list[i-4])
+                block.append([list[i], list[i-1], list[i-2], list[i-3]])
+            return [w,b,block]
 
         return [w,b]
     
@@ -625,10 +634,28 @@ class GoBoard(object):
         return four
     
     def capture_block(self,gap,colour,list,i):
-        start = list[i-4] # get start of the block
+        """start = list[i-4] # get start of the block
+        end = list[i]
         
+        if(self.board[end] != opponent(colour)):
+            return
+        
+        # 
+        if(end-8 < 0 or end-8 >):
+
+
+        top_list_opp = []
+        top_list_col = []
         for n in range(7):
-            pass
+            check_colour = self.board[start+n-8]
+            if(start+n == gap):
+                continue
+            elif(check_colour == opponent(colour)):
+                top_list_opp += start+n-8
+            elif(check_colour == colour):
+                top_list_col += start+n+8
+            
+        for space in top_list """
             
     
 

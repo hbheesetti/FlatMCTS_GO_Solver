@@ -309,12 +309,14 @@ class GoBoard(object):
         Tries to play a move of color on the point.
         Returns whether or not the point was empty.
         """
+        
         if self.board[point] != EMPTY:
             return False
         self.board[point] = color
         self.current_player = opponent(color)
         self.last2_move = self.last_move
         self.last_move = point
+        self.detect_n_in_row(color)
         O = opponent(color)
         offsets = [1, -1, self.NS, -self.NS, self.NS+1, -(self.NS+1), self.NS-1, -self.NS+1]
         for offset in offsets:
@@ -408,33 +410,53 @@ class GoBoard(object):
         b5 = []
         w5 = []
         four = []
-        for r in self.rows:
+        cap_for_w = []
+        cap_for_b = []
+        _ = []
+        lines = self.rows + self.cols + self.diags
+        for r in lines:
             rows = self.has_n_in_list(r,four_colour)
             w5 += rows[0]
             b5 += rows[1]
             four += rows[2]
-        for c in self.cols:
-            cols = self.has_n_in_list(c,four_colour)
-            w5 += cols[0]
-            b5 += cols[1]
-            four += cols[2]
-        for d in self.diags:
-            diags = self.has_n_in_list(d,four_colour)
-            w5 += diags[0]
-            b5 += diags[1]
-            four += diags[2]
+            cap_for_w += rows[3]
+            cap_for_b += rows[4]
+        #print("r", cap_for_w, cap_for_b)
+        # for c in self.cols:
+        #     cols = self.has_n_in_list(c,four_colour)
+        #     w5 += cols[0]
+        #     b5 += cols[1]
+        #     four += cols[2]
+        #     cap_for_w += rows[3]
+        #     cap_for_b += rows[4]
+        # print("c", cap_for_w, cap_for_b)
+        # for d in self.diags:
+        #     diags = self.has_n_in_list(d,four_colour)
+        #     w5 += diags[0]
+        #     b5 += diags[1]
+        #     four += rows[2]
+        #     cap_for_w += rows[3]
+        #     cap_for_b += rows[4]
+        # print("d", cap_for_w, cap_for_b)
+
+        #print("four", four)
         if four_colour == BLACK:
             wins = b5
             blocks = w5
+            captures = cap_for_b
         elif four_colour == WHITE:
             wins = w5
             blocks = b5
+            captures = cap_for_w
+        
         if(len(wins) > 0):
             return "Win", wins
         elif len(blocks) > 0:
             return "BlockWin", blocks
         elif len(four) > 0:
             return "OpenFour", four
+        elif len(captures) > 0:
+            return "Capture", captures
         return "none", []
     
     def moveFormatting(self, moves):
@@ -460,6 +482,8 @@ class GoBoard(object):
         b5 = []
         w5 = []
         four = []
+        cap_4b = []
+        cap_4w = []
         cap_block = []
         for i in range(1,len(list)):
             color = self.get_color(list[i])
@@ -485,14 +509,78 @@ class GoBoard(object):
                     prev = color
             # if at the end of the board or there has been a colour change get the empty spaces
             if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
+                #print("at end of board?", i, counter)
                 if(counter == 4):
                     w5,b5 = self.five_space(w5,b5,gap_spot,list,i,color)
                     cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
                 elif(counter == 3 and color == four_colour):
                     four = self.four_space(four,gap_spot,list,i)
-        return [w5,b5,four]
+                elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
+                    # print("i-3", self.get_color(list[i-3]))
+                    # print("i-2", self.get_color(list[i-2]))
+                    # print("i-1", self.get_color(list[i-1]))
+                    # print("i", self.get_color(list[i]))
+                    # print("i+1", self.get_color(list[i+1]))
+                    # There is a possible capture
+                    if self.get_color(list[i-3])*self.get_color(list[i-2]) == 2 and color == 0 and i >= 3:
+                        
+                        '''
+                        Check if the pattern is opp,opp,opp,empty
+                        '''
+                        # The current stone is an empty spot and two stones back is an apponent of the two in a row
+                        if self.get_color(list[i-3]) == 2:
+                            # The lone opponent stone is whtie
+                            cap_4b += [list[i]]
+                        else:
+                            # The lone opponent stone is black
+                            cap_4w += [list[i]]
+                    elif self.get_color(list[i-3]) == 0 and self.get_color(list[i-1])*color == 2 and i >= 3:
+                            
+                            '''
+                            Check if the pattern is empty,opp,opp,opp
+                            '''
+                            # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                            if color == 2:
+                                cap_4b += [list[i-3]]
+                            else:
+                                cap_4w += [list[i-3]]
+                    
+                    elif self.get_color(list[i-2]) == 0 and self.get_color(list[i+1])*color == 2 and i >= 2:
+                        
+                        # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                        if color == 2:
+                            cap_4b += [list[i-2]]
+                        else:
+                            cap_4w += [list[i-2]]
+                        
+                    elif self.get_color(list[i+1]) == 0 and self.get_color(list[i-2])*color == 2 and i >= 2:
+                        
+                        # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                        if self.get_color(list[i-1]) == 2:
+                            cap_4b += [list[i+1]]
+                        else:
+                            cap_4w += [list[i+1]]
+        
+        # if  cap_4w != []:
+        #     print("white")
+        #     for col in cap_4w:
+        #         print(format_point(point_to_coord(col, 5)))
+        # if cap_4b != []:
+        #     print("black")
+        #     for col in cap_4b:
+        #         print(format_point(point_to_coord(col, 5)))
+
+        # print("inside n_row", cap_4b, cap_4w)
+        # Code for identifying when there is a potential capture win for a player
+        # if self.black_captures == 8:
+        #     cap_4w = cap_4b+cap_4w
+        # if self.white_captures == 8:
+        #     cap_4b = cap_4w+cap_4b
+        
+        return [w5,b5,four,cap_4w, cap_4b]
     
+
     def five_space(self,w,b,empty,list,i,color):
         if(color == BLACK):
             # if there is an empty space append it is the space that completes the block
@@ -521,6 +609,7 @@ class GoBoard(object):
         return [w,b]
     
     def four_space(self,four,empty,list,i):
+       # print(four, empty, list, i, 5)
          # if there is an empty space append it is the space that completes the block
         if(empty > 0):
             four.append(list[empty])
@@ -531,6 +620,8 @@ class GoBoard(object):
             four.append(list[i+1])
         if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1]] == EMPTY):
             four.append(list[i-3])
+        # for f in four:
+        #     print(format_point(point_to_coord(list[f], 5)))
         return four
     
     def capture_block(self,gap,colour,list,i):
@@ -552,8 +643,7 @@ def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
     else:
         NS = boardsize + 1
         return divmod(point, NS)
-
-
+    
 def format_point(move: Tuple[int, int]) -> str:
     """
     Return move coordinates as a string such as 'A1', or 'PASS'.
@@ -565,4 +655,4 @@ def format_point(move: Tuple[int, int]) -> str:
     row, col = move
     if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
         raise ValueError
-        return column_letters[col - 1] + str(row)
+    return column_letters[col - 1] + str(row)

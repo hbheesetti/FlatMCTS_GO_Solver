@@ -385,16 +385,20 @@ class GtpConnection:
     
     def moveFormatting(self, moves):
         formatted_moves = []
+        s = ""
         for i in moves:
             coord = point_to_coord(i, self.board.size)
             move = format_point(coord)
             formatted_moves.append(move)
         formatted_moves.sort()
-        return str(formatted_moves)
+
+        for i in formatted_moves:
+            s += str(i) + " "
+        return s[:-1]
 
     def policy_moves_cmd(self, args) -> None:
         rule, moves = self.simulatedPlayer.ruleBasedMoves(self.board, self.board.current_player, self.policy_random)
-        s = rule + self.moveFormatting(moves)
+        s = "[" + rule + " " + self.moveFormatting(moves) + "]"
         self.respond(s)
 
     def timelimit_cmd(self, args: List[str]) -> None:

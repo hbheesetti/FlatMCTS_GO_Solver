@@ -515,7 +515,7 @@ class GoBoard(object):
             if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
                 #print("at end of board?", i, counter)
                 if(counter == 4):
-                    w5,b5,block = self.five_space(w5,b5,gap_spot,list,i,color,blocks_of_opponent_fives,current_color)
+                    w5,b5, blocks_of_opponent_fives = self.five_space(w5,b5,gap_spot,list,i,color,blocks_of_opponent_fives,current_color)
                     #cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
                 elif(counter == 3 and color == current_color):
@@ -615,7 +615,7 @@ class GoBoard(object):
                 block.append([list[i], list[i-1], list[i-2], list[i-3]])
             return [w,b,block]
 
-        return [w,b]
+        return [w,b,block]
     
     def four_space(self,four,empty,list,i):
        # print(four, empty, list, i, 5)

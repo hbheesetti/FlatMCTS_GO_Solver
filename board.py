@@ -485,7 +485,7 @@ class GoBoard(object):
         four = []
         cap_4b = []
         cap_4w = []
-        five = False
+        cap_block = []
         for i in range(1,len(list)):
             color = self.get_color(list[i])
             if color == prev:
@@ -512,10 +512,10 @@ class GoBoard(object):
             if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
                 #print("at end of board?", i, counter)
                 if(counter == 4):
-                    five = True
                     w5,b5 = self.five_space(w5,b5,gap_spot,list,i,color)
+                    cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
-                elif(not five and counter == 3 and color == four_colour):
+                elif(counter == 3 and color == four_colour):
                     four = self.four_space(four,gap_spot,list,i)
                 elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
                     print("i-3", self.get_color(list[i-3]))
@@ -616,18 +616,22 @@ class GoBoard(object):
             four.append(list[empty])
             return four
         # if there are at least 2 empty spaces to a side of the block add the first empty space e.g add ..XXX not O.XXX
-        if(i+2 < len(list) and self.board[list[i+1]] == EMPTY and self.board[list[i-2] == EMPTY]):
+        
+        if(i+2 < len(list) and self.board[list[i+1]] == EMPTY and self.board[list[i+2]] == EMPTY):
             four.append(list[i+1])
-        if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1] == EMPTY]):
+        if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1]] == EMPTY):
             four.append(list[i-3])
         # for f in four:
         #     print(format_point(point_to_coord(list[f], 5)))
         return four
-
-    '''
-    REMOVE BEFORE SUBMIT
-    '''
-
+    
+    def capture_block(self,gap,colour,list,i):
+        start = list[i-4] # get start of the block
+        
+        for n in range(7):
+            pass
+            
+    
 
 def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
     """

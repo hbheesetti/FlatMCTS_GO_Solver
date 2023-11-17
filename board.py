@@ -42,6 +42,8 @@ For many more utility functions, see the GoBoardUtil class in board_util.py.
 The board is stored as a one-dimensional array of GO_POINT in self.board.
 See coord_to_point for explanations of the array encoding.
 """
+
+
 class GoBoard(object):
     def __init__(self, size: int) -> None:
         """
@@ -58,12 +60,13 @@ class GoBoard(object):
             self.black_captures += 2
         elif color == WHITE:
             self.white_captures += 2
+
     def get_captures(self, color: GO_COLOR) -> None:
         if color == BLACK:
             return self.black_captures
         elif color == WHITE:
             return self.white_captures
-    
+
     def calculate_rows_cols_diags(self) -> None:
         if self.size < 5:
             return
@@ -76,13 +79,13 @@ class GoBoard(object):
             for pt in range(start, start + self.size):
                 current_row.append(pt)
             self.rows.append(current_row)
-            
+
             start = self.row_start(1) + i - 1
             current_col = []
             for pt in range(start, self.row_start(self.size) + i, self.NS):
                 current_col.append(pt)
             self.cols.append(current_col)
-        
+
         self.diags = []
         # diag towards SE, starting from first row (1,1) moving right to (1,n)
         start = self.row_start(1)
@@ -92,7 +95,7 @@ class GoBoard(object):
             while self.get_color(pt) == EMPTY:
                 diag_SE.append(pt)
                 pt += self.NS + 1
-            if len(diag_SE) >= 5:
+            if len(diag_SE) >= 4:
                 self.diags.append(diag_SE)
         # diag towards SE and NE, starting from (2,1) downwards to (n,1)
         for i in range(start + self.NS, self.row_start(self.size) + 1, self.NS):
@@ -106,9 +109,9 @@ class GoBoard(object):
             while self.get_color(pt) == EMPTY:
                 diag_NE.append(pt)
                 pt += -1 * self.NS + 1
-            if len(diag_SE) >= 5:
+            if len(diag_SE) >= 4:
                 self.diags.append(diag_SE)
-            if len(diag_NE) >= 5:
+            if len(diag_NE) >= 4:
                 self.diags.append(diag_NE)
         # diag towards NE, starting from (n,2) moving right to (n,n)
         start = self.row_start(self.size) + 1
@@ -118,11 +121,11 @@ class GoBoard(object):
             while self.get_color(pt) == EMPTY:
                 diag_NE.append(pt)
                 pt += -1 * self.NS + 1
-            if len(diag_NE) >=5:
+            if len(diag_NE) >= 4:
                 self.diags.append(diag_NE)
         assert len(self.rows) == self.size
         assert len(self.cols) == self.size
-        assert len(self.diags) == (2 * (self.size - 5) + 1) * 2
+        assert len(self.diags) == (2 * (self.size - 4) + 1) * 2
 
     def reset(self, size: int) -> None:
         """
@@ -136,7 +139,8 @@ class GoBoard(object):
         self.last2_move: GO_POINT = NO_POINT
         self.current_player: GO_COLOR = BLACK
         self.maxpoint: int = board_array_size(size)
-        self.board: np.ndarray[GO_POINT] = np.full(self.maxpoint, BORDER, dtype=GO_POINT)
+        self.board: np.ndarray[GO_POINT] = np.full(
+            self.maxpoint, BORDER, dtype=GO_POINT)
         self._initialize_empty_points(self.board)
         self.calculate_rows_cols_diags()
         self.black_captures = 0
@@ -171,7 +175,7 @@ class GoBoard(object):
         assert is_black_white(color)
         if point == PASS:
             return True
-        # Could just return False for out-of-bounds, 
+        # Could just return False for out-of-bounds,
         # but it is better to know if this is called with an illegal point
         assert self.pt(1, 1) <= point <= self.pt(self.size, self.size)
         assert is_black_white_empty(self.board[point])
@@ -195,8 +199,8 @@ class GoBoard(object):
 
     def end_of_game(self) -> bool:
         return self.last_move == PASS \
-           and self.last2_move == PASS
-           
+            and self.last2_move == PASS
+
     def get_empty_points(self) -> np.ndarray:
         """
         Return:
@@ -218,7 +222,7 @@ class GoBoard(object):
         """
         for row in range(1, self.size + 1):
             start: int = self.row_start(row)
-            board_array[start : start + self.size] = EMPTY
+            board_array[start: start + self.size] = EMPTY
 
     def is_eye(self, point: GO_POINT, color: GO_COLOR) -> bool:
         """
@@ -303,22 +307,23 @@ class GoBoard(object):
             if len(captures) == 1:
                 single_capture = nb_point
         return single_capture
-    
+
     def play_move(self, point: GO_POINT, color: GO_COLOR) -> bool:
         """
         Tries to play a move of color on the point.
         Returns whether or not the point was empty.
         """
-        
+
         if self.board[point] != EMPTY:
             return False
         self.board[point] = color
         self.current_player = opponent(color)
         self.last2_move = self.last_move
         self.last_move = point
-        self.detect_n_in_row(color)
+        # self.detect_n_in_row(color)
         O = opponent(color)
-        offsets = [1, -1, self.NS, -self.NS, self.NS+1, -(self.NS+1), self.NS-1, -self.NS+1]
+        offsets = [1, -1, self.NS, -self.NS, self.NS +
+                   1, -(self.NS+1), self.NS-1, -self.NS+1]
         for offset in offsets:
             if self.board[point+offset] == O and self.board[point+(offset*2)] == O and self.board[point+(offset*3)] == color:
                 self.board[point+offset] = EMPTY
@@ -328,16 +333,16 @@ class GoBoard(object):
                 else:
                     self.white_captures += 2
         return True
-    
+
     def endOfGame(self) -> bool:
         if self.get_empty_points().size == 0 or GO_COLOR(self.detect_five_in_a_row()) != EMPTY or self.black_captures >= 10 or self.white_captures >= 10:
             return True
         return False
-    
+
     def legalMoves(self):
         moves = self.get_empty_points()
         return moves
-    
+
     def neighbors_of_color(self, point: GO_POINT, color: GO_COLOR) -> List:
         """ List of neighbors of point of given color """
         nbc: List[GO_POINT] = []
@@ -404,39 +409,38 @@ class GoBoard(object):
             if counter == 5 and prev != EMPTY:
                 return prev
         return EMPTY
-    
-    def detect_n_in_row(self,current_color):
-        #Checks for a group of n stones in the same direction on the board.
+
+    def detect_n_in_row(self, current_color):
+        # Checks for a group of n stones in the same direction on the board.
         b5 = []
         w5 = []
         four = []
-        cap_for_w = []
         cap_for_b = []
+        cap_for_w = []
         _ = []
         blocks_of_opponent_fives = []
         lines = self.rows + self.cols + self.diags
         for r in lines:
-            rows = self.has_n_in_list(r,current_color)
+            rows = self.has_n_in_list(r, current_color)
             w5 += rows[0]
             b5 += rows[1]
             four += rows[2]
-            cap_for_w += rows[3]
-            cap_for_b += rows[4]
+            cap_for_w += rows[4]
+            cap_for_b += rows[3]
             blocks_of_opponent_fives += rows[5]
 
-        #print("four", four)
+        # print("four", four)
         if current_color == BLACK:
             wins = b5
-            blocks = w5
-            #blocks += self.intersect_captures(cap_for_b,blocks_of_opponent_fives)
+            blocks = w5 + cap_for_w
             captures = cap_for_b
         elif current_color == WHITE:
             wins = w5
-            blocks = b5
-            #blocks += self.intersect_captures(cap_for_w,blocks_of_opponent_fives)
+            blocks = b5 + cap_for_w
+            # blocks += self.intersect_captures(cap_for_w,blocks_of_opponent_fives)
             captures = cap_for_w
-        
-        if(len(wins) > 0):
+
+        if (len(wins) > 0):
             return "Win", wins
         elif len(blocks) > 0:
             return "BlockWin", blocks
@@ -445,7 +449,7 @@ class GoBoard(object):
         elif len(captures) > 0:
             return "Capture", captures
         return "none", []
-    
+
     def moveFormatting(self, moves):
         formatted_moves = []
         for i in moves:
@@ -455,7 +459,6 @@ class GoBoard(object):
         formatted_moves.sort()
         return formatted_moves
 
-    
     def has_n_in_list(self, list, current_color) -> GO_COLOR:
         """
         Checks if there are n stones in a row.
@@ -471,24 +474,24 @@ class GoBoard(object):
         four = []
         cap_4b = []
         cap_4w = []
-        #list of stones captured by white vvvv
+        # list of stones captured by white vvvv
         cap_white = []
-        #list of stones captured by black vvvv
+        # list of stones captured by black vvvv
         cap_black = []
         blocks_of_opponent_fives = []
-        for i in range(1,len(list)):
+        for i in range(1, len(list)):
             color = self.get_color(list[i])
             if color == prev:
                 # Matching stone
                 counter += 1
-            elif(gap_spot == 0 and color == EMPTY):
-                # there is a potential gap 
+            elif (gap_spot == 0 and color == EMPTY):
+                # there is a potential gap
                 gap_spot = i
-                before_gap_counter = counter # store the number of stones before the gap
+                before_gap_counter = counter  # store the number of stones before the gap
             else:
                 # if there is a second gap ignore the first gap, set empty to the second gap, and subtract the number of stones before the first gap from the counter.
-                # this is so that we can keep the stones after the first gap but before the second gap in the count 
-                if(color == EMPTY):
+                # this is so that we can keep the stones after the first gap but before the second gap in the count
+                if (color == EMPTY):
                     gap_spot = i
                     counter = counter - before_gap_counter
                     before_gap_counter = counter
@@ -499,15 +502,16 @@ class GoBoard(object):
                     gap_spot = 0
                     prev = color
             # if at the end of the board or there has been a colour change get the empty spaces
-            if(prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
-                #print("at end of board?", i, counter)
-                if(counter == 4):
-                    w5,b5, blocks_of_opponent_fives = self.five_space(w5,b5,gap_spot,list,i,color,blocks_of_opponent_fives,current_color)
-                    #cap_block = self.capture_block(gap_spot,four_colour,list,i)
+            if (prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
+                # print("at end of board?", i, counter)
+                if (counter == 4):
+                    w5, b5, blocks_of_opponent_fives = self.five_space(
+                        w5, b5, gap_spot, list, i, color, blocks_of_opponent_fives, current_color)
+                    # cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
-                elif(counter == 3 and color == current_color):
-                    four = self.four_space(four,gap_spot,list,i)
-                elif(counter == 2 and self.get_color(list[i-1])!= 0 and i+1 < len(list)): 
+                elif (counter == 3 and color == current_color):
+                    four = self.four_space(four, gap_spot, list, i)
+                elif (counter == 2 and self.get_color(list[i-1]) != 0 and i+1 < len(list)):
                     # print("i-3", self.get_color(list[i-3]))
                     # print("i-2", self.get_color(list[i-2]))
                     # print("i-1", self.get_color(list[i-1]))
@@ -528,19 +532,19 @@ class GoBoard(object):
                             cap_4w += [list[i]]
                             cap_white += [list[i-2], list[i-1]]
                     elif self.get_color(list[i-3]) == 0 and self.get_color(list[i-1])*color == 2 and i >= 3:
-                            '''
-                            Check if the pattern is empty,opp,opp,opp
-                            '''
-                            # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
-                            if color == 2:
-                                cap_4b += [list[i-3]]
-                                cap_black += [list[i-2], list[i-1]]
-                            else:
-                                cap_4w += [list[i-3]]
-                                cap_white += [list[i-2], list[i-1]]
-                    
+                        '''
+                        Check if the pattern is empty,opp,opp,opp
+                        '''
+                        # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
+                        if color == 2:
+                            cap_4b += [list[i-3]]
+                            cap_black += [list[i-2], list[i-1]]
+                        else:
+                            cap_4w += [list[i-3]]
+                            cap_white += [list[i-2], list[i-1]]
+
                     elif self.get_color(list[i-2]) == 0 and self.get_color(list[i+1])*color == 2 and i >= 2:
-                        
+
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if color == 2:
                             cap_4b += [list[i-2]]
@@ -548,9 +552,9 @@ class GoBoard(object):
                         else:
                             cap_4w += [list[i-2]]
                             cap_white += [list[i-1], list[i]]
-                        
+
                     elif self.get_color(list[i+1]) == 0 and self.get_color(list[i-2])*color == 2 and i >= 2:
-                        
+
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if self.get_color(list[i-1]) == 2:
                             cap_4b += [list[i+1]]
@@ -558,20 +562,20 @@ class GoBoard(object):
                         else:
                             cap_4w += [list[i+1]]
                             cap_white += [list[i-1], list[i]]
-        
-        # if  cap_4w != []:
-        #     print("white")
-        #     for col in cap_4w:
-        #         print("Move", format_point(point_to_coord(col, self.size)))
-        #         for s in cap_white:
-        #             print(format_point(point_to_coord(s, self.size)))
 
-        # if cap_4b != []:
-        #     print("black")
-        #     for col in cap_4b:
-        #         print("Move", format_point(point_to_coord(col, self.size)))
-        #         for s in cap_black:
-        #             print(format_point(point_to_coord(s, self.size)))
+        if cap_4w != []:
+            print("white")
+            for col in cap_4w:
+                print("Move", format_point(point_to_coord(col, self.size)))
+                for s in cap_white:
+                    print(format_point(point_to_coord(s, self.size)))
+
+        if cap_4b != []:
+            print("black")
+            for col in cap_4b:
+                print("Move", format_point(point_to_coord(col, self.size)))
+                for s in cap_black:
+                    print(format_point(point_to_coord(s, self.size)))
 
         # print("inside n_row", cap_4b, cap_4w)
         # Code for identifying when there is a potential capture win for a player
@@ -580,71 +584,70 @@ class GoBoard(object):
         # if self.white_captures == 8:
         #     cap_4b = cap_4w+cap_4b
         if current_color == 2:
-            return [w5,b5,four,cap_4w, cap_4b,blocks_of_opponent_fives, cap_black]
+            return [w5, b5, four, cap_4w, cap_4b, blocks_of_opponent_fives, cap_black]
         else:
-            return [w5,b5,four,cap_4w, cap_4b,blocks_of_opponent_fives, cap_white]
-    
+            return [w5, b5, four, cap_4w, cap_4b, blocks_of_opponent_fives, cap_white]
 
-    def five_space(self,w,b,empty,list,i,color,block,current_color):
-        if(color == BLACK):
+    def five_space(self, w, b, empty, list, i, color, block, current_color):
+        if (color == BLACK):
             # if there is an empty space append it is the space that completes the block
-            if(empty > 0):
+            if (empty > 0):
                 b.append(list[empty])
-                return [w,b,block]
-            # if there is an empty space before or after the block add them 
-            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                return [w, b, block]
+            # if there is an empty space before or after the block add them
+            if (i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 b.append(list[i+1])
-            if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
+            if (i-4 >= 0 and self.board[list[i-4]] == EMPTY):
                 b.append(list[i-4])
-            if(len(b) > 0 and current_color != BLACK):
+            if (len(b) > 0 and current_color != BLACK):
                 block.append([list[i], list[i-1], list[i-2], list[i-3]])
-                if(empty > 0):
+                if (empty > 0):
                     block.remove(list[empty])
                     list.append(list[i-4])
-            return [w,b,block]
-            
-        elif(color == WHITE):
-            if(empty > 0):
+            return [w, b, block]
+
+        elif (color == WHITE):
+            if (empty > 0):
                 # if there is an empty space append it is the space that completes the block
                 w.append(list[empty])
-                return [w,b,block]
-            # if there is an empty space before or after the block add them 
-            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                return [w, b, block]
+            # if there is an empty space before or after the block add them
+            if (i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 w.append(list[i+1])
-            if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
-                w.append(list[i-4]) 
-            if(len(w) > 0 and current_color != WHITE):
-                if(empty > 0):
+            if (i-4 >= 0 and self.board[list[i-4]] == EMPTY):
+                w.append(list[i-4])
+            if (len(w) > 0 and current_color != WHITE):
+                if (empty > 0):
                     block.remove(list[empty])
                     list.append(list[i-4])
                 block.append([list[i], list[i-1], list[i-2], list[i-3]])
-            return [w,b,block]
+            return [w, b, block]
 
-        return [w,b,block]
-    
-    def four_space(self,four,empty,list,i):
+        return [w, b, block]
+
+    def four_space(self, four, empty, list, i):
        # print(four, empty, list, i, 5)
-         # if there is an empty space append it is the space that completes the block
-        if(empty > 0):
+        # if there is an empty space append it is the space that completes the block
+        if (empty > 0):
             four.append(list[empty])
             return four
         # if there are at least 2 empty spaces to a side of the block add the first empty space e.g add ..XXX not O.XXX
-        
-        if(i+2 < len(list) and self.board[list[i+1]] == EMPTY and self.board[list[i+2]] == EMPTY):
+
+        if (i+2 < len(list) and self.board[list[i+1]] == EMPTY and self.board[list[i+2]] == EMPTY):
             four.append(list[i+1])
-        if(i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1]] == EMPTY):
+        if (i-3-1 >= 0 and self.board[list[i-3]] == EMPTY and self.board[list[i-3-1]] == EMPTY):
             four.append(list[i-3])
         # for f in four:
         #     print(format_point(point_to_coord(list[f], 5)))
         return four
-    
-    def capture_block(self,gap,colour,list,i):
+
+    def capture_block(self, gap, colour, list, i):
         """start = list[i-4] # get start of the block
         end = list[i]
-        
+
         if(self.board[end] != opponent(colour)):
             return
-        
+
         # 
         if(end-8 < 0 or end-8 >):
 
@@ -659,10 +662,9 @@ class GoBoard(object):
                 top_list_opp += start+n-8
             elif(check_colour == colour):
                 top_list_col += start+n+8
-            
+
         for space in top_list """
-            
-    
+
 
 def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
     """
@@ -675,7 +677,8 @@ def point_to_coord(point: GO_POINT, boardsize: int) -> Tuple[int, int]:
     else:
         NS = boardsize + 1
         return divmod(point, NS)
-    
+
+
 def format_point(move: Tuple[int, int]) -> str:
     """
     Return move coordinates as a string such as 'A1', or 'PASS'.

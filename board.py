@@ -646,9 +646,9 @@ class GoBoard(object):
             # if there is an empty space append it is the space that completes the block
             if (empty > 0):
                 b.append(list[empty])
-                temp = [list[i], list[i-1], list[i-2], list[i-3]]
+                temp = [list[i], list[i-1], list[i-2], list[i-3], list[i-4]]
                 temp.remove(list[empty])
-                temp.append(list[i-4])
+                #temp.append(list[i-4])
                 block.append(temp)
                 return [w,b,block]
             # if there is an empty space before or after the block add them 
@@ -663,9 +663,9 @@ class GoBoard(object):
         elif(color == WHITE):
             if(empty > 0):
                 # if there is an empty space append it is the space that completes the block
-                temp = [list[i], list[i-1], list[i-2], list[i-3]]
+                temp = [list[i], list[i-1], list[i-2], list[i-3], list[i-4]]
                 temp.remove(list[empty])
-                temp.append(list[i-4])
+                #temp.append(list[i-4])
                 block.append(temp)
                 return [w,b,block]
             # if there is an empty space before or after the block add them 

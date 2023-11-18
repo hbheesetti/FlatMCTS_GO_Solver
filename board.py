@@ -425,30 +425,48 @@ class GoBoard(object):
             w5 += rows[0]
             b5 += rows[1]
             four += rows[2]
-            cap_for_w += rows[4]
-            cap_for_b += rows[3]
+            cap_for_w += rows[3]
+            cap_for_b += rows[4]
             blocks_of_opponent_fives += rows[5]
+        print(blocks_of_opponent_fives)
 
-        # print("four", four)
         if current_color == BLACK:
             wins = b5
             blocks = w5 + cap_for_w
             captures = cap_for_b
         elif current_color == WHITE:
             wins = w5
-            blocks = b5 + cap_for_w
-            # blocks += self.intersect_captures(cap_for_w,blocks_of_opponent_fives)
+            blocks = b5 + cap_for_b
             captures = cap_for_w
 
         if (len(wins) > 0):
             return "Win", wins
         elif len(blocks) > 0:
+            captureBlocks = self.getCaptureBlocks(
+                blocks_of_opponent_fives, lines, current_color)
             return "BlockWin", blocks
         elif len(four) > 0:
             return "OpenFour", four
         elif len(captures) > 0:
             return "Capture", captures
         return "none", []
+
+    def getCaptureBlocks(self, opponent_fives, lines, cur_col):
+        capturable = []
+        for win in opponent_fives:
+            for i in win:
+                stone_lines = []  # all the lines the stone is a part of
+                for j in lines:
+                    for k in j:
+                        if i == k:
+                            stone_lines.append(j)
+                cap = self.identifyIfCapturable(stone_lines, i)
+                capturable.append(cap)
+        return capturable
+
+    def identifyIfCapturable(self, lines, stone):
+        for line in lines:
+            index = line.index(stone)
 
     def moveFormatting(self, moves):
         formatted_moves = []
@@ -522,7 +540,7 @@ class GoBoard(object):
                         '''
                         Check if the pattern is opp,opp,opp,empty
                         '''
-                        # The current stone is an empty spot and two stones back is an apponent of the two in a row
+                        # The current stone is an empty spot and two stones back is an opponent of the two in a row
                         if self.get_color(list[i-3]) == 2:
                             # The lone opponent stone is whtie
                             cap_4b += [list[i]]
@@ -563,19 +581,19 @@ class GoBoard(object):
                             cap_4w += [list[i+1]]
                             cap_white += [list[i-1], list[i]]
 
-        if cap_4w != []:
-            print("white")
-            for col in cap_4w:
-                print("Move", format_point(point_to_coord(col, self.size)))
-                for s in cap_white:
-                    print(format_point(point_to_coord(s, self.size)))
+        # if cap_4w != []:
+        #     print("white")
+        #     for col in cap_4w:
+        #         print("Move", format_point(point_to_coord(col, self.size)))
+        #         for s in cap_white:
+        #             print(format_point(point_to_coord(s, self.size)))
 
-        if cap_4b != []:
-            print("black")
-            for col in cap_4b:
-                print("Move", format_point(point_to_coord(col, self.size)))
-                for s in cap_black:
-                    print(format_point(point_to_coord(s, self.size)))
+        # if cap_4b != []:
+        #     print("black")
+        #     for col in cap_4b:
+        #         print("Move", format_point(point_to_coord(col, self.size)))
+        #         for s in cap_black:
+        #             print(format_point(point_to_coord(s, self.size)))
 
         # print("inside n_row", cap_4b, cap_4w)
         # Code for identifying when there is a potential capture win for a player

@@ -4,6 +4,7 @@ from board_util import GoBoardUtil
 from board import GoBoard
 from typing import List, Tuple
 
+
 class SimulationPlayer(object):
     def __init__(self, numSimulations):
         self.numSimulations = numSimulations
@@ -24,7 +25,7 @@ class SimulationPlayer(object):
         best = moves[bestIndex]
         assert best in state.legalMoves()
         return best
-    
+
     def ruleBasedMoves(self, board: GoBoard, color, rand: bool) -> Tuple[str, List[int]]:
         """
         return: (MoveType, MoveList)
@@ -36,7 +37,8 @@ class SimulationPlayer(object):
             if len(moves) > 0:
                 return rule, moves
         result = board.get_empty_points()
-        return "Random", result
+        res = result.tolist()
+        return "Random", res
 
     def simulate(self, state, move, rand):
         num_wins = 0
@@ -46,8 +48,8 @@ class SimulationPlayer(object):
             board_copy.play_move(move, state.current_player)
             winner = board_copy.detect_five_in_a_row()
             while winner == EMPTY and len(board_copy.get_empty_points()) != 0:
-                _,moves = self.ruleBasedMoves(board_copy, board_copy.current_player, rand)
-                #print(moves)
+                _, moves = self.ruleBasedMoves(
+                    board_copy, board_copy.current_player, rand)
                 random_move = random.choice(moves)
                 board_copy.play_move(random_move, board_copy.current_player)
                 winner = board_copy.detect_five_in_a_row()

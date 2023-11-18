@@ -320,7 +320,7 @@ class GoBoard(object):
         self.current_player = opponent(color)
         self.last2_move = self.last_move
         self.last_move = point
-        # self.detect_n_in_row(color)
+        self.detect_n_in_row(color)
         O = opponent(color)
         offsets = [1, -1, self.NS, -self.NS, self.NS +
                    1, -(self.NS+1), self.NS-1, -self.NS+1]
@@ -430,15 +430,20 @@ class GoBoard(object):
             cap_for_b += rows[4]
             blocks_of_opponent_fives += rows[5]
             blocks_of_captures += rows[6]
-        print(blocks_of_opponent_fives)
         if current_color == BLACK:
             wins = b5
             blocks = w5
             captures = cap_for_b
+            for x in cap_for_w:
+                if cap_for_w.count(x)*2 + self.white_captures >= 10:
+                    blocks += [x]
         elif current_color == WHITE:
             wins = w5
             blocks = b5
             captures = cap_for_w
+            for x in cap_for_b:
+                if cap_for_b.count(x)*2 + self.black_captures >= 10:
+                    blocks += [x]
 
         if (len(wins) > 0):
             return "Win", wins
@@ -554,6 +559,7 @@ class GoBoard(object):
                 if (counter == 4):
                     w5, b5, blocks_of_opponent_fives = self.five_space(
                         w5, b5, gap_spot, list, i, color, blocks_of_opponent_fives, current_color)
+                    
                     # cap_block = self.capture_block(gap_spot,four_colour,list,i)
                 # only get fours if there are no fives and the color is correct
                 elif (counter == 3 and color == current_color):
@@ -611,19 +617,19 @@ class GoBoard(object):
                             cap_white += [list[i-1], list[i]]
 
         # if cap_4w != []:
-        #     print("white")
-        #     for col in cap_4w:
-        #         print("Move", format_point(point_to_coord(col, self.size)))
-        #         for s in cap_white:
-        #             print(format_point(point_to_coord(s, self.size)))
+        #     print("captured by white")
+        #     # for col in cap_4w:
+        #     #     print("Move", format_point(point_to_coord(col, self.size)))
+        #     for s in cap_white:
+        #         print(format_point(point_to_coord(s, self.size)))
 
         # if cap_4b != []:
-        #     print("black")
-        #     for col in cap_4b:
-        #         print("Move", format_point(point_to_coord(col, self.size)))
-        #         for s in cap_black:
-        #             print(format_point(point_to_coord(s, self.size)))
-
+        #     print("captured by black")
+        #     # for col in cap_4b:
+        #     #     #print("Move", format_point(point_to_coord(col, self.size)))
+        #     for s in cap_black:
+        #         print(format_point(point_to_coord(s, self.size)))
+        # print(blocks_of_opponent_fives)
         # print("inside n_row", cap_4b, cap_4w)
         # Code for identifying when there is a potential capture win for a player
         # if self.black_captures == 8:

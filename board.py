@@ -419,6 +419,7 @@ class GoBoard(object):
         cap_for_w = []
         _ = []
         blocks_of_opponent_fives = []
+        blocks_of_captures = []
         lines = self.rows + self.cols + self.diags
         for r in lines:
             rows = self.has_n_in_list(r, current_color)
@@ -428,7 +429,8 @@ class GoBoard(object):
             cap_for_w += rows[3]
             cap_for_b += rows[4]
             blocks_of_opponent_fives += rows[5]
-
+            blocks_of_captures += rows[6]
+        print(blocks_of_opponent_fives)
         if current_color == BLACK:
             wins = b5
             blocks = w5
@@ -454,7 +456,7 @@ class GoBoard(object):
         capturable = []
         for win in opponent_fives:
             for i in win:
-                print("move", self.moveFormatting([i]))
+                #print("move", self.moveFormatting([i]))
                 stone_lines = []  # all the lines the stone is a part of
                 for j in lines:
                     for k in j:
@@ -473,20 +475,20 @@ class GoBoard(object):
         newLines += lines
         for line in newLines:
             index = line.index(stone)
-            print(self.moveFormatting(line))
+            #print(self.moveFormatting(line))
             if index > 0 and index+2 < len(line):
                 i = line[index]
                 j = line[index+1]
                 k = line[index+2]
                 l = line[index-1]
-                print(i, j, k, l)
-                print(self.get_color(i), self.get_color(j),
-                      self.get_color(k), self.get_color(l))
+               #print(i, j, k, l)
+               #print(self.get_color(i), self.get_color(j),
+                     # self.get_color(k), self.get_color(l))
 
                 if self.get_color(j) == self.get_color(i):
-                    print(1)
+                    #print(1)
                     if self.get_color(l) == opponent(self.get_color(i)):
-                        print(2)
+                        #print(2)
                         if self.get_color(k) == 0:
                             moves.append(k)
         return moves
@@ -571,11 +573,11 @@ class GoBoard(object):
                         if self.get_color(list[i-3]) == 2:
                             # The lone opponent stone is whtie
                             cap_4b += [list[i]]
-                            cap_black += [list[i-2], list[i-1]]
+                            cap_black += [([list[i-2], list[i-1]],list[i])]
                         else:
                             # The lone opponent stone is black
                             cap_4w += [list[i]]
-                            cap_white += [list[i-2], list[i-1]]
+                            cap_white += [([list[i-2], list[i-1]],list[i])]
                     elif self.get_color(list[i-3]) == 0 and self.get_color(list[i-1])*color == 2 and i >= 3:
                         '''
                         Check if the pattern is empty,opp,opp,opp
@@ -593,7 +595,7 @@ class GoBoard(object):
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if color == 2:
                             cap_4b += [list[i-2]]
-                            cap_black += [list[i-1], list[i]]
+                            cap_black += [([list[i-1], list[i]],list[i-2])]
                         else:
                             cap_4w += [list[i-2]]
                             cap_white += [list[i-1], list[i]]
@@ -603,7 +605,7 @@ class GoBoard(object):
                         # The current stone is an opponent of the 2 stones in a row and 3 stones back is an empty spot
                         if self.get_color(list[i-1]) == 2:
                             cap_4b += [list[i+1]]
-                            cap_black += [list[i-1], list[i]]
+                            cap_black += [([list[i-1], list[i]],list[i+1])]
                         else:
                             cap_4w += [list[i+1]]
                             cap_white += [list[i-1], list[i]]
@@ -638,35 +640,36 @@ class GoBoard(object):
             # if there is an empty space append it is the space that completes the block
             if (empty > 0):
                 b.append(list[empty])
-                return [w, b, block]
-            # if there is an empty space before or after the block add them
-            if (i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                temp = [list[i], list[i-1], list[i-2], list[i-3]]
+                temp.remove(list[empty])
+                temp.append(list[i-4])
+                block.append(temp)
+                return [w,b,block]
+            # if there is an empty space before or after the block add them 
+            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 b.append(list[i+1])
             if (i-4 >= 0 and self.board[list[i-4]] == EMPTY):
                 b.append(list[i-4])
-            if (len(b) > 0 and current_color != BLACK):
+            if(len(b) > 0 and current_color != BLACK):
                 block.append([list[i], list[i-1], list[i-2], list[i-3]])
-                if (empty > 0):
-                    block.remove(list[empty])
-                    list.append(list[i-4])
-            return [w, b, block]
-
-        elif (color == WHITE):
-            if (empty > 0):
+            return [w,b,block]
+            
+        elif(color == WHITE):
+            if(empty > 0):
                 # if there is an empty space append it is the space that completes the block
-                w.append(list[empty])
-                return [w, b, block]
-            # if there is an empty space before or after the block add them
-            if (i+1 < len(list) and self.board[list[i+1]] == EMPTY):
+                temp = [list[i], list[i-1], list[i-2], list[i-3]]
+                temp.remove(list[empty])
+                temp.append(list[i-4])
+                block.append(temp)
+                return [w,b,block]
+            # if there is an empty space before or after the block add them 
+            if(i+1 < len(list) and self.board[list[i+1]] == EMPTY):
                 w.append(list[i+1])
-            if (i-4 >= 0 and self.board[list[i-4]] == EMPTY):
-                w.append(list[i-4])
-            if (len(w) > 0 and current_color != WHITE):
-                if (empty > 0):
-                    block.remove(list[empty])
-                    list.append(list[i-4])
+            if(i-4 >= 0 and self.board[list[i-4]] == EMPTY):
+                w.append(list[i-4]) 
+            if(len(w) > 0 and current_color != WHITE):
                 block.append([list[i], list[i-1], list[i-2], list[i-3]])
-            return [w, b, block]
+            return [w,b,block]
 
         return [w, b, block]
 

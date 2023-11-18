@@ -428,15 +428,14 @@ class GoBoard(object):
             cap_for_w += rows[3]
             cap_for_b += rows[4]
             blocks_of_opponent_fives += rows[5]
-        print(blocks_of_opponent_fives)
 
         if current_color == BLACK:
             wins = b5
-            blocks = w5 + cap_for_w
+            blocks = w5
             captures = cap_for_b
         elif current_color == WHITE:
             wins = w5
-            blocks = b5 + cap_for_b
+            blocks = b5
             captures = cap_for_w
 
         if (len(wins) > 0):
@@ -444,7 +443,7 @@ class GoBoard(object):
         elif len(blocks) > 0:
             captureBlocks = self.getCaptureBlocks(
                 blocks_of_opponent_fives, lines, current_color)
-            return "BlockWin", blocks
+            return "BlockWin", blocks+captureBlocks
         elif len(four) > 0:
             return "OpenFour", four
         elif len(captures) > 0:
@@ -455,27 +454,55 @@ class GoBoard(object):
         capturable = []
         for win in opponent_fives:
             for i in win:
+                print("move", self.moveFormatting([i]))
                 stone_lines = []  # all the lines the stone is a part of
                 for j in lines:
                     for k in j:
                         if i == k:
                             stone_lines.append(j)
                 cap = self.identifyIfCapturable(stone_lines, i)
-                capturable.append(cap)
+                capturable += cap
         return capturable
 
     def identifyIfCapturable(self, lines, stone):
-        for line in lines:
+        moves = []
+        y = len(lines)
+        newLines = []
+        for i in lines:
+            newLines.append(list(reversed(i)))
+        newLines += lines
+        for line in newLines:
             index = line.index(stone)
+            print(self.moveFormatting(line))
+            if index > 0 and index+2 < len(line):
+                i = line[index]
+                j = line[index+1]
+                k = line[index+2]
+                l = line[index-1]
+                print(i, j, k, l)
+                print(self.get_color(i), self.get_color(j),
+                      self.get_color(k), self.get_color(l))
+
+                if self.get_color(j) == self.get_color(i):
+                    print(1)
+                    if self.get_color(l) == opponent(self.get_color(i)):
+                        print(2)
+                        if self.get_color(k) == 0:
+                            moves.append(k)
+        return moves
 
     def moveFormatting(self, moves):
         formatted_moves = []
+        s = ""
         for i in moves:
-            coord = point_to_coord(i, self.board.size)
+            coord = point_to_coord(i, self.size)
             move = format_point(coord)
             formatted_moves.append(move)
         formatted_moves.sort()
-        return formatted_moves
+
+        for i in formatted_moves:
+            s += str(i) + " "
+        return s[:-1]
 
     def has_n_in_list(self, list, current_color) -> GO_COLOR:
         """

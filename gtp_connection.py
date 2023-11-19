@@ -374,6 +374,9 @@ class GtpConnection:
         self.respond(move_as_string)
        
     def set_policy_cmd(self, args:List[str]) -> None:
+        if(len(args) < 1):
+            self.respond("Invalid policy, policy can only be either random or rule_based")
+            return
         if args[0] == "random":
             self.policy_random = True
         elif args[0] == "rule_based":

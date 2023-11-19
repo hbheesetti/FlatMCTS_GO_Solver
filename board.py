@@ -320,7 +320,6 @@ class GoBoard(object):
         self.current_player = opponent(color)
         self.last2_move = self.last_move
         self.last_move = point
-        self.detect_n_in_row(color)
         O = opponent(color)
         offsets = [1, -1, self.NS, -self.NS, self.NS +
                    1, -(self.NS+1), self.NS-1, -self.NS+1]

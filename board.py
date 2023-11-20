@@ -443,7 +443,6 @@ class GoBoard(object):
             for x in cap_for_b:
                 if cap_for_b.count(x)*2 + self.black_captures >= 10:
                     blocks += [x]
-
         if (len(wins) > 0):
             return "Win", wins
         elif len(blocks) > 0:
@@ -555,7 +554,7 @@ class GoBoard(object):
             # if at the end of the board or there has been a colour change get the empty spaces
             if (prev != EMPTY and prev != BORDER and (i+1 >= len(list) or self.get_color(list[i+1]) != color)):
                 # print("at end of board?", i, counter)
-                if (counter == 4):
+                if (counter >= 4):
                     w5, b5, blocks_of_opponent_fives = self.five_space(
                         w5, b5, gap_spot, list, i, color, blocks_of_opponent_fives, current_color)
                     

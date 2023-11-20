@@ -396,12 +396,12 @@ class GtpConnection:
         formatted_moves.sort()
 
         for i in formatted_moves:
-            s += str(i) + " "
+            s += str(i).lower() + " "
         return s[:-1]
 
     def policy_moves_cmd(self, args) -> None:
         rule, moves = self.simulatedPlayer.ruleBasedMoves(self.board, self.board.current_player, self.policy_random)
-        s = "[" + rule + " " + self.moveFormatting(moves) + "]"
+        s = rule + " " + self.moveFormatting(moves)
         self.respond(s)
 
     def timelimit_cmd(self, args: List[str]) -> None:
@@ -442,7 +442,7 @@ def format_point(move: Tuple[int, int]) -> str:
     row, col = move
     if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
         raise ValueError
-    return column_letters[col - 1] + str(row)
+    return column_letters[col - 1].lower() + str(row)
 
 
 def move_to_coord(point_str: str, board_size: int) -> Tuple[int, int]:

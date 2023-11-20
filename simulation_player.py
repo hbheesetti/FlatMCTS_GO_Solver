@@ -62,13 +62,14 @@ class SimulationPlayer(object):
         num_wins = 0
         num_draws = 0
         cur_player = state.current_player
-        for _ in range(1):
+        for _ in range(self.numSimulations):
             board_copy = state.copy()
             board_copy.play_move(move, state.current_player)
             winner = board_copy.detect_five_in_a_row()
             while winner == EMPTY and len(board_copy.get_empty_points()) != 0:
                 rule, moves = self.ruleBasedMoves(
                     board_copy, board_copy.current_player, rand)
+                # print(self.moveFormatting(moves))
                 random_move = random.choice(moves)
                 board_copy.play_move(random_move, board_copy.current_player)
                 winner = board_copy.detect_five_in_a_row()
